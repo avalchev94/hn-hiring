@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
-	"strings"
 )
 
 const (
@@ -39,10 +37,12 @@ func QueryPost(postID string) (*Post, error) {
 	return &post, nil
 }
 
-func (p *Post) SearchKids(keywords []string) []*Post {
+func (p *Post) SearchKids(expression string) []*Post {
 	var posts []*Post
 
-	for _, id := range p.Kids {
+	//eval, err := evaluator.New(expression)
+
+	/*	for _, id := range p.Kids {
 		if kid, err := QueryPost(strconv.FormatInt(id, 10)); err == nil {
 			for _, k := range keywords {
 				if strings.Contains(kid.Text, k) {
@@ -52,7 +52,7 @@ func (p *Post) SearchKids(keywords []string) []*Post {
 				}
 			}
 		}
-	}
+	}*/
 
 	return posts
 }
