@@ -1,0 +1,44 @@
+<html>
+  <head>
+		<title>Hiring Search</title>
+		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+		<style>
+  		ul#messages        { list-style: none; }
+  		ul#messages li     { margin-bottom: 2px; }
+			ul#messages li img { margin-right: 10px; }
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<div class="panel panel-default">
+				<div class="panel-body">
+					<ul id="posts"></ul>
+				</div>
+			</div>
+		</div>
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+		<script>
+				$(function() {
+					var socket = null;
+					var posts = $("#posts");
+
+					if (!window["WebSocket"]) {
+						alert("Error: WebBrowser does not support websockets");
+					} else {
+						socket = new WebSocket("ws://{{.Host}}/hire");
+						socket.onclose = function() {
+							alert("Connection has been closed.");
+						}
+						socket.onmessage = function(e) {
+						  var msg = eval("("+e.data+")");
+						  posts.append(
+						    $("<li>").append(
+						      $("<span>").append(msg.text)
+						    )
+						  );
+						}
+					}
+				});
+		</script>
+	</body>
+</html>
