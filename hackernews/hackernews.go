@@ -7,7 +7,9 @@ import (
 )
 
 const (
-	url = "https://hacker-news.firebaseio.com/v0/item/%d.json?print=pretty"
+	url     = "https://hacker-news.firebaseio.com/v0/item/%d.json?print=pretty"
+	Story   = "story"
+	Comment = "comment"
 )
 
 // Post is containing the basic data got from hackernews. The data could be
@@ -20,10 +22,9 @@ type Post struct {
 	Type  string  `json:"type"`
 }
 
-// SearchFunc is a function type that is used by SearchKids method.
-// Input: the title and text of the post
-// Output: return if the post meets the requirements
-type SearchFunc func(title, text string) bool
+type Searcher interface {
+	Search(p Post) bool
+}
 
 // QueryPost gets the data for the input id.
 func QueryPost(postID int64) (*Post, error) {
@@ -42,25 +43,42 @@ func QueryPost(postID int64) (*Post, error) {
 	return &post, nil
 }
 
-func searchWorker(kids <-chan int64, found chan<- *Post, f SearchFunc) {
+func worker(kids <-chan int64, found chan<- *Post, done chan<- bool, s Searcher) {
 	for id := range kids {
-		if p, err := QueryPost(id); err == nil {
-			if f(p.Title, p.Text) {
-				found <- p
+		if k, err := QueryPost(id); err == nil {
+			if s.Search(*k) {
+				found <- k
 			}
 		}
 	}
+	done <- true
 }
 
-func (p *Post) SearchKids(f SearchFunc, found chan<- *Post, threads int) {
+func (p *Post) SearchKids(s Searcher, found chan<- *Post, workers int) {
+	done := make(chan bool, workers)
 	kids := make(chan int64)
 
-	for i := 0; i < threads; i++ {
-		go searchWorker(kids, found, f)
-	}
+	for i := 0; i < workers; i++ {
+		go worker(kids, found, done, s)
 
+	}
 	for _, k := range p.Kids {
 		kids <- k
 	}
 	close(kids)
+
+	for i := 0; i < workers; i++ {
+		<-done
+	}
+}
+
+func (p *Post) Search(s Searcher, found chan<- *Post, workers int) {
+	switch p.Type {
+	case Comment:
+		if s.Search(*p) {
+			found <- p
+		}
+	case Story:
+		p.SearchKids(s, found, workers)
+	}
 }

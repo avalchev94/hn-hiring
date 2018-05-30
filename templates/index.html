@@ -1,0 +1,70 @@
+<html>
+  <head>
+    <title>Hiring Search</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/css/bootstrap-select.min.css">
+  </head>
+  <body>
+    <div class="container">
+      <div class="jumbotron">
+        <h2>Who is hiring? Find easy your next job!</h2>
+      </div>
+      <div class="panel panel-info">
+        <div class="panel-body">
+          <select class="selectpicker" multiple title="Choose posts for searching...">
+            <option value="16492994">Ask HN: Who is hiring? (March 2018)</option>
+            <option value="16735011">Ask HN: Who is hiring? (April 2018)</option>
+          </select>
+          <input type="text" name="expression">
+          <button type="button" id="search">Hire me!</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <ul id="posts"></ul>
+      </div>
+    </div>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/js/bootstrap-select.min.js"></script>
+    <script>
+      $(function() {
+        var socket = null;
+        var posts = $("#posts");
+
+        if (!window["WebSocket"]) {
+          alert("Error: WebBrowser does not support websockets");
+        } else {
+          socket = new WebSocket("ws://{{.Host}}/hire");
+          socket.onclose = function() {
+            alert("Connection has been closed.");
+          }
+          socket.onmessage = function(e) {
+            var msg = eval("("+e.data+")");
+            posts.append(
+              $("<li>").append(
+                $("<span>").append(msg.text)
+              )
+            );
+          }
+        }
+
+        $("#search").click( function() {
+          var expression = $("input[name='expression']").val()
+          var items = [];
+          $(".selectpicker option:selected").each( function(){
+            items.push(parseInt($(this).val(), 10));
+          });
+
+          var message = JSON.stringify({
+              "items": items,
+              "expression": expression
+          })
+          alert(message)
+          socket.send(message)
+        });
+      });
+    </script>
+  </body>
+</html>
