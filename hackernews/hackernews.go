@@ -23,7 +23,7 @@ type Post struct {
 }
 
 type Searcher interface {
-	Search(p Post) bool
+	Search(searched string) bool
 }
 
 // QueryPost gets the data for the input id.
@@ -45,9 +45,9 @@ func QueryPost(postID int64) (*Post, error) {
 
 func worker(kids <-chan int64, found chan<- *Post, done chan<- bool, s Searcher) {
 	for id := range kids {
-		if k, err := QueryPost(id); err == nil {
-			if s.Search(*k) {
-				found <- k
+		if p, err := QueryPost(id); err == nil {
+			if s.Search(p.Text) {
+				found <- p
 			}
 		}
 	}
@@ -75,7 +75,7 @@ func (p *Post) SearchKids(s Searcher, found chan<- *Post, workers int) {
 func (p *Post) Search(s Searcher, found chan<- *Post, workers int) {
 	switch p.Type {
 	case Comment:
-		if s.Search(*p) {
+		if s.Search(p.Text) {
 			found <- p
 		}
 	case Story:

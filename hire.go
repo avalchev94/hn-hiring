@@ -2,12 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/avalchev94/boolean-evaluator/evaluator"
 	"github.com/avalchev94/hn-hiring/hackernews"
+	"github.com/avalchev94/hn-hiring/searcher/boolean"
 	"github.com/gorilla/websocket"
-	"log"
 	"net/http"
-	"strings"
 )
 
 type hireOptions struct {
@@ -19,23 +17,10 @@ type hireData struct {
 	Expression  string      `json:"expression"`
 	Preferences hireOptions `json:"preferences"`
 
-	Eval *evaluator.Evaluator
+	Searcher *boolean.Searcher
 }
 
 var upgrader = websocket.Upgrader{}
-
-func (hd hireData) Search(p hackernews.Post) bool {
-	for param := range hd.Eval.Parameters {
-		hd.Eval.Parameters[param] = strings.Contains(p.Text, param)
-	}
-	fmt.Println(hd.Eval)
-	result, err := hd.Eval.Evaluate()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	return result
-}
 
 func hireHandler(w http.ResponseWriter, r *http.Request) {
 	c, err := upgrader.Upgrade(w, r, nil)
@@ -52,8 +37,9 @@ func hireHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("error on socket reading: ", err)
 			continue
 		}
+		fmt.Println("socket recieved:", data)
 
-		data.Eval, err = evaluator.New(data.Expression)
+		data.Searcher, err = boolean.New(data.Expression)
 		if err != nil {
 			fmt.Println("error on eval creation: ", err)
 			continue
@@ -68,7 +54,7 @@ func hireHandler(w http.ResponseWriter, r *http.Request) {
 
 		for _, postID := range data.Items {
 			if p, err := hackernews.QueryPost(postID); err == nil {
-				p.Search(data, found, 20)
+				p.Search(data.Searcher, found, 20)
 			}
 		}
 
