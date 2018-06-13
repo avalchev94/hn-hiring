@@ -62,7 +62,7 @@
                 );
                 break;
               case 3: // Incorrect expression
-                alert(msg.message);
+                alert(msg.message.error + " at " + msg.message.column);
                 break;
             }
           }

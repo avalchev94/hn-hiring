@@ -1,6 +1,5 @@
 # To-Do List
 1. Fix readKeyword. It should work with quotes inside.
-1.1 Add better errors for creating Searcher from searched/boolean
 2. Add highlight + caseSensitive options(ui + backend)
 3. Add comments for the exported functions.
 4. Add tests for searcher/boolean package

@@ -1,7 +1,6 @@
 package boolean
 
 import (
-	"fmt"
 	"github.com/avalchev94/go_collections/stack"
 	"github.com/avalchev94/go_collections/tree"
 	"strings"
@@ -12,8 +11,15 @@ type Searcher struct {
 	tree *tree.Tree
 }
 
+// Error struct/type is returned when new Searcher is created.
+// It has json bindings, because it is supposed to be send to client.
+type Error struct {
+	Column int    `json:"column"`
+	Error  string `json:"error"`
+}
+
 // New creates Searcher. Error is returned if the expression has syntax mistakes.
-func New(expression string) (*Searcher, error) {
+func New(expression string) (*Searcher, *Error) {
 	subTrees := stack.New()
 	operators := stack.New()
 
@@ -48,7 +54,7 @@ func New(expression string) (*Searcher, error) {
 		} else if keyword, err := reader.readKeyword(); err == nil {
 			subTrees.Push(tree.New(keyword))
 		} else {
-			return nil, createError(reader, reader.checkError().Error())
+			return nil, createError(reader, "undefined character")
 		}
 	}
 
@@ -65,16 +71,16 @@ func New(expression string) (*Searcher, error) {
 	return &Searcher{subTrees.Pop().(*tree.Tree)}, nil
 }
 
-func createError(r *reader, err string) error {
+func createError(r *reader, err string) *Error {
 	if r != nil {
-		return fmt.Errorf("column %d: %s", r.currentIndex(), err)
+		return &Error{r.currentIndex() + 1, err}
 	}
 
 	if err != "" {
-		return fmt.Errorf(err)
+		return &Error{-1, err}
 	}
 
-	return fmt.Errorf("undefined?")
+	return &Error{-1, "undefined?"}
 }
 
 // Search looks for the keywords in the "searched" string. In the same time,

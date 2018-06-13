@@ -45,8 +45,7 @@ func hireHandler(w http.ResponseWriter, r *http.Request) {
 
 	for {
 		var msg hireRequest
-		err := c.ReadJSON(&msg)
-		if err != nil {
+		if err := c.ReadJSON(&msg); err != nil {
 			log.Println("error on socket reading: ", err)
 			return
 		}
@@ -58,7 +57,7 @@ func hireHandler(w http.ResponseWriter, r *http.Request) {
 
 			c.WriteJSON(hireRespond{
 				Type:    incorrectExpression,
-				Message: err.Error(),
+				Message: *err,
 			})
 			continue
 		}

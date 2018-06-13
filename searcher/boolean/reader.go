@@ -109,7 +109,3 @@ func (r *reader) readKeyword() (string, error) {
 
 	return keyword, nil
 }
-
-func (r *reader) checkError() error {
-	return nil
-}
