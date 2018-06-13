@@ -48,7 +48,7 @@ func (op operator) createTree(subTrees *stack.Stack) error {
 	}
 
 	if subTrees.Len() < op.arity {
-		return fmt.Errorf("insufficient sub-trees for operator %c", op.char)
+		return fmt.Errorf("insufficient arguments for operator %c", op.char)
 	}
 
 	switch {

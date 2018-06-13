@@ -42,11 +42,29 @@
           }
           socket.onmessage = function(e) {
             var msg = eval("("+e.data+")");
-            posts.append(
-              $("<li>").append(
-                $("<span>").append(msg.text)
-              )
-            );
+
+            switch (msg.type) {
+              case 0: // Post found
+                posts.append(
+                  $("<li>").append(
+                    $("<span>").append(msg.message.text)
+                  )
+                );
+                break;
+              case 1: // Nothing was found
+                posts.append(
+                  $("<span>").append(msg.message)
+                );
+                break;
+              case 2: // Search finished
+                posts.append(
+                  $("<span>").append(msg.message)
+                );
+                break;
+              case 3: // Incorrect expression
+                alert(msg.message);
+                break;
+            }
           }
         }
 

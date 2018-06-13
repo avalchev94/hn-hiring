@@ -54,6 +54,10 @@ func (r *reader) unread() {
 	r.readIndex--
 }
 
+func (r *reader) currentIndex() int {
+	return r.readIndex
+}
+
 func (r *reader) readOperator() (operator, error) {
 	ch, err := r.read()
 	if err != nil {
@@ -104,4 +108,8 @@ func (r *reader) readKeyword() (string, error) {
 	}
 
 	return keyword, nil
+}
+
+func (r *reader) checkError() error {
+	return nil
 }

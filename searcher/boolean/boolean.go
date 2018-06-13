@@ -28,7 +28,7 @@ func New(expression string) (*Searcher, error) {
 					prevOp := operators.Top().(operator)
 					if !prevOp.equal(leftBracket) && !op.greater(prevOp) {
 						if err := operators.Pop().(operator).createTree(subTrees); err != nil {
-							return nil, err
+							return nil, createError(reader, err.Error())
 						}
 					}
 				}
@@ -40,27 +40,41 @@ func New(expression string) (*Searcher, error) {
 			case op.equal(rightBracket):
 				for !operators.Empty() && !operators.Top().(operator).equal(leftBracket) {
 					if err := operators.Pop().(operator).createTree(subTrees); err != nil {
-						return nil, err
+						return nil, createError(reader, err.Error())
 					}
 				}
 				operators.Pop()
 			}
 		} else if keyword, err := reader.readKeyword(); err == nil {
 			subTrees.Push(tree.New(keyword))
+		} else {
+			return nil, createError(reader, reader.checkError().Error())
 		}
 	}
 
 	for operators.Len() > 0 {
 		if err := operators.Pop().(operator).createTree(subTrees); err != nil {
-			return nil, err
+			return nil, createError(nil, err.Error())
 		}
 	}
 
 	if subTrees.Len() != 1 {
-		return nil, fmt.Errorf("missing operator?")
+		return nil, createError(nil, "missing operator?")
 	}
 
 	return &Searcher{subTrees.Pop().(*tree.Tree)}, nil
+}
+
+func createError(r *reader, err string) error {
+	if r != nil {
+		return fmt.Errorf("column %d: %s", r.currentIndex(), err)
+	}
+
+	if err != "" {
+		return fmt.Errorf(err)
+	}
+
+	return fmt.Errorf("undefined?")
 }
 
 // Search looks for the keywords in the "searched" string. In the same time,
