@@ -67,7 +67,7 @@ func hireHandler(w http.ResponseWriter, r *http.Request) {
 
 		for _, postID := range msg.Items {
 			if p, err := hackernews.QueryPost(postID); err == nil {
-				p.Search(searcher, found, len(p.Kids))
+				p.Search(searcher, found, 20)
 			}
 		}
 

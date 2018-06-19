@@ -27,7 +27,15 @@ func New(expression string) (*Searcher, *Error) {
 	for reader.len() > 0 {
 		reader.clear(' ')
 
-		if op, err := reader.readOperator(); err == nil {
+		token, err := reader.readToken()
+		if token == nil {
+			return nil, createError(reader, err.Error())
+		}
+
+		switch token.(type) {
+		// operator
+		case operator:
+			op := token.(operator)
 			switch {
 			case op.equal(and) || op.equal(or):
 				if operators.Len() > 0 {
@@ -44,22 +52,33 @@ func New(expression string) (*Searcher, *Error) {
 				operators.Push(op)
 
 			case op.equal(rightBracket):
-				for !operators.Empty() && !operators.Top().(operator).equal(leftBracket) {
-					if err := operators.Pop().(operator).createTree(subTrees); err != nil {
-						return nil, createError(reader, err.Error())
+				for {
+					if operators.Empty() {
+						return nil, createError(reader, "brackets does not match")
+					}
+
+					if op := operators.Pop().(operator); op.equal(leftBracket) {
+						break
+					} else {
+						if err := op.createTree(subTrees); err != nil {
+							return nil, createError(reader, err.Error())
+						}
 					}
 				}
-				operators.Pop()
 			}
-		} else if keyword, err := reader.readKeyword(); err == nil {
-			subTrees.Push(tree.New(keyword))
-		} else {
-			return nil, createError(reader, "undefined character")
+
+		// keyword
+		case string:
+			subTrees.Push(tree.New(token.(string)))
 		}
 	}
 
 	for operators.Len() > 0 {
-		if err := operators.Pop().(operator).createTree(subTrees); err != nil {
+		op := operators.Pop().(operator)
+
+		if op.equal(leftBracket) {
+			return nil, createError(nil, "brackets does not match")
+		} else if err := op.createTree(subTrees); err != nil {
 			return nil, createError(nil, err.Error())
 		}
 	}
@@ -73,7 +92,7 @@ func New(expression string) (*Searcher, *Error) {
 
 func createError(r *reader, err string) *Error {
 	if r != nil {
-		return &Error{r.currentIndex() + 1, err}
+		return &Error{r.currentIndex(), err}
 	}
 
 	if err != "" {

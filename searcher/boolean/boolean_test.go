@@ -1,106 +1,106 @@
 package boolean
 
 import (
-//	"testing"
-
-//	"github.com/avalchev94/go_collections/stack"
+	"github.com/avalchev94/go_collections/stack"
+	"github.com/avalchev94/go_collections/tree"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-//
-//func TestReader(t *testing.T) {
-//	r := newReader("  'A'|'Bac12'&  !('1'|'A')")
-//
-//	if r == nil {
-//		t.Errorf("newReader shouldn't be nil")
-//	}
-//
-//	if r.len() != 18 {
-//		t.Errorf("Length should be 18, nothing is read currently")
-//	}
-//
-//	if err := r.clear(' '); err != nil {
-//		t.Errorf("Clear shouldn't had to return nil")
-//	}
-//
-//	if r.len() != 16 {
-//		t.Errorf("After clearing the whitespaces, len should be 16")
-//	}
-//
-//	if ch, err := r.read(); err != nil {
-//		t.Errorf("Read shouldn't return error")
-//	} else if ch != 'A' {
-//		t.Errorf("The read character is not A")
-//	}
-//
-//	if r.len() != 15 {
-//		t.Errorf("After reading the first rune, len should be 15")
-//	}
-//
-//	if ch, err := r.seek(); err != nil {
-//		t.Errorf("Seek shouldn't return error")
-//	} else if ch != '|' {
-//		t.Errorf("Seek returned wrong character")
-//	}
-//
-//	if r.len() != 15 {
-//		t.Errorf("Seek should only check the char, but not mark it as read")
-//	}
-//
-//	if op, err := r.readOperator(); err != nil {
-//		t.Errorf("read operator should be successful")
-//	} else if !op.equal(or) {
-//		t.Errorf("wrong operator returned")
-//	}
-//
-//	if k, err := r.readKeyword(); err != nil {
-//		t.Errorf("read parameter should be successful")
-//	} else if k != "Bac12" {
-//		t.Errorf("wrong parameter returned")
-//	}
-//
-//	if op, _ := r.readOperator(); !op.equal(and) {
-//		t.Errorf("wrong operator returned")
-//	}
-//
-//	r.clear(' ')
-//	if op, _ := r.readOperator(); !op.equal(not) {
-//		t.Errorf("wrong operator returned")
-//	}
-//
-//	if op, _ := r.readOperator(); !op.equal(leftBracket) {
-//		t.Errorf("wrong operator returned")
-//	}
-//
-//	if _, err := r.readParameter(); err == nil {
-//		t.Errorf("error should be returned")
-//	}
-//
-//	if _, err := r.readOperator(); err == nil {
-//		t.Errorf("error should be returned")
-//	}
-//
-//	r.read()
-//	r.readOperator()
-//	r.readParameter()
-//
-//	if op, _ := r.readOperator(); !op.equal(rightBracket) {
-//		t.Errorf("wrong operator returned")
-//	}
-//
-//	if r.len() != 0 {
-//		t.Errorf("data has ended. 0 should be returned")
-//	}
-//
-//	_, err0 := r.read()
-//	_, err1 := r.seek()
-//	_, err2 := r.readOperator()
-//	_, err3 := r.readParameter()
-//
-//	if err0 == nil || err1 == nil || err2 == nil || err3 == nil {
-//		t.Errorf("data has ended, error should be returned")
-//	}
-//}
-//
+func AssertTokenString(t *testing.T, r *reader, actual string) {
+	assert := assert.New(t)
+
+	token, err := r.readToken()
+	assert.NotNil(token)
+	assert.Nil(err)
+	assert.IsType(token, "")
+	assert.Equal(token.(string), actual)
+}
+
+func AssertTokenOperator(t *testing.T, r *reader, actual operator) {
+	assert := assert.New(t)
+
+	token, err := r.readToken()
+	assert.NotNil(token)
+	assert.Nil(err)
+	assert.IsType(token, actual)
+	assert.True(token.(operator).equal(actual))
+}
+
+func AssertInvalidToken(t *testing.T, r *reader) {
+	assert := assert.New(t)
+
+	token, err := r.readToken()
+	assert.Nil(token)
+	assert.NotNil(err)
+}
+
+func TestReader(t *testing.T) {
+	assert := assert.New(t)
+
+	r := newReader("  \"A\"|\"Bac12\"&  !(\"1\"#\"A\")\"\" \"ABC")
+	assert.NotNil(r)
+
+	assert.NoError(r.clear(' '))
+	assert.Equal(r.len(), 31)
+	assert.Equal(r.currentIndex(), 2)
+
+	AssertTokenString(t, r, "A")
+	AssertTokenOperator(t, r, or)
+	AssertTokenString(t, r, "Bac12")
+	AssertTokenOperator(t, r, and)
+
+	assert.NoError(r.clear(' '))
+	AssertTokenOperator(t, r, not)
+	AssertTokenOperator(t, r, leftBracket)
+	AssertTokenString(t, r, "1")
+	AssertInvalidToken(t, r)
+	AssertTokenString(t, r, "A")
+	AssertTokenOperator(t, r, rightBracket)
+
+	AssertInvalidToken(t, r)
+	assert.NoError(r.clear(' '))
+	AssertInvalidToken(t, r)
+
+	// stream ended asserts
+	_, err := r.read()
+	assert.NotNil(err)
+	AssertInvalidToken(t, r)
+}
+
+func TestOperator(t *testing.T) {
+	assert := assert.New(t)
+
+	assert.True(and.greater(or))
+	assert.True(not.greater(and))
+	assert.True(and.equal(and))
+
+	assert.True(and.calculate(true, true))
+	assert.False(and.calculate(true, false))
+	assert.True(or.calculate(true, false))
+	assert.False(or.calculate(false, false))
+	assert.True(not.calculate(false))
+	assert.False(leftBracket.calculate()) /// calculate works only for and, or, not
+
+	s := stack.New()
+	s.Push(tree.New("ABC"))
+	// handle the errors first
+	assert.Error(and.createTree(s))
+	assert.Error(or.createTree(s))
+	assert.Error(leftBracket.createTree(s))
+
+	assert.NoError(not.createTree(s))
+	assert.Equal(s.Len(), 1)
+	assert.True(s.Top().(*tree.Tree).Value.(operator).equal(not))
+	assert.Equal(s.Top().(*tree.Tree).Left.Value.(string), "ABC")
+	assert.Nil(s.Top().(*tree.Tree).Right)
+
+	s.Push(tree.New("CBA"))
+	assert.NoError(and.createTree(s))
+	assert.Equal(s.Len(), 1)
+	assert.True(s.Top().(*tree.Tree).Value.(operator).equal(and))
+}
+
 //func TestOperator(t *testing.T) {
 //	if or.greater(and) || and.greater(not) || not.greater(leftBracket) || leftBracket.greater(rightBracket) {
 //		t.Error("greater's evaluation is incorrect")
