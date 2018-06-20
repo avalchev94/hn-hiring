@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"text/template"
 )
@@ -26,7 +27,7 @@ func main() {
 	http.HandleFunc("/", homeHandler)
 	http.HandleFunc("/hire", hireHandler)
 
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(":"+os.Getenv("PORT"), nil); err != nil {
 		log.Fatalln(err)
 	}
 }
