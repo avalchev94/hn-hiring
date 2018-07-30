@@ -1,11 +1,11 @@
 ## HACK Ignore linux binary files ##
 
 # Ignore all
-*
+#*
 # Unignore all with extension
-!*.*
+#!*.*
 # Unignore all dirs
-!*/
+#!*/
 
 ## End Linux binary ignore ##
 
@@ -26,3 +26,6 @@
 
 # Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
 .glide/
+
+# Do not add vendor
+vendor/*/
