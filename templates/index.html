@@ -3,6 +3,10 @@
     <title>Hiring Search</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/css/bootstrap-select.min.css">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/js/bootstrap-select.min.js"></script>
+    <script src="js/index.js"></script>
   </head>
   <body>
     <div class="container">
@@ -25,63 +29,5 @@
         <ul id="posts"></ul>
       </div>
     </div>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/js/bootstrap-select.min.js"></script>
-    <script>
-      $(function() {
-        var socket = null;
-        var posts = $("#posts");
-
-        if (!window["WebSocket"]) {
-          alert("Error: WebBrowser does not support websockets");
-        } else {
-          socket = new WebSocket("ws://{{.Host}}/hire");
-          socket.onclose = function() {
-            alert("Connection has been closed.");
-          }
-          socket.onmessage = function(e) {
-            var msg = eval("("+e.data+")");
-
-            switch (msg.type) {
-              case 0: // Post found
-                posts.append(
-                  $("<li>").append(
-                    $("<span>").append(msg.message.text)
-                  )
-                );
-                break;
-              case 1: // Nothing was found
-                posts.append(
-                  $("<span>").append(msg.message)
-                );
-                break;
-              case 2: // Search finished
-                posts.append(
-                  $("<span>").append(msg.message)
-                );
-                break;
-              case 3: // Incorrect expression
-                alert(msg.message.error + " at " + msg.message.column);
-                break;
-            }
-          }
-        }
-
-        $("#search").click( function() {
-          var expression = $("input[name='expression']").val()
-          var items = [];
-          $(".selectpicker option:selected").each( function(){
-            items.push(parseInt($(this).val(), 10));
-          });
-
-          var message = JSON.stringify({
-              "items": items,
-              "expression": expression
-          })
-          socket.send(message)
-        });
-      });
-    </script>
   </body>
 </html>

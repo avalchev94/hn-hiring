@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/avalchev94/hn-hiring/hackernews"
-	"github.com/avalchev94/hn-hiring/searcher/boolean"
-	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/avalchev94/hn-hiring/hackernews"
+	"github.com/avalchev94/hn-hiring/searcher/boolean"
+	"github.com/gorilla/websocket"
 )
 
 type hireRequest struct {

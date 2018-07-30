@@ -2,6 +2,7 @@ package boolean
 
 import (
 	"fmt"
+
 	"github.com/avalchev94/go_collections/stack"
 	"github.com/avalchev94/go_collections/tree"
 )

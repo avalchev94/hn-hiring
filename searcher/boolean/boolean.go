@@ -1,9 +1,10 @@
 package boolean
 
 import (
+	"strings"
+
 	"github.com/avalchev94/go_collections/stack"
 	"github.com/avalchev94/go_collections/tree"
-	"strings"
 )
 
 // Searcher is a struct for boolean evaluation(search).
@@ -103,7 +104,7 @@ func createError(r *reader, err string) *Error {
 }
 
 // Search looks for the keywords in the "searched" string. In the same time,
-// it evaluates the boolean expression.
+// it evaluates the boolean expression. If searched is empty string, true is returned.
 func (s *Searcher) Search(searched string) bool {
 	return searchEvaluator(s.tree, searched)
 }

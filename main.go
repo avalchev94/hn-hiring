@@ -25,7 +25,7 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	http.HandleFunc("/", homeHandler)
 	http.HandleFunc("/hire", hireHandler)
-
+	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("templates/js"))))
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatalln(err)
 	}
