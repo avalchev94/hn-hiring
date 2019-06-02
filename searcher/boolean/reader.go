@@ -53,6 +53,17 @@ func (r *reader) readToken() (interface{}, error) {
 	}
 
 	switch ch {
+	// operators
+	case and.char:
+		return and, nil
+	case or.char:
+		return or, nil
+	case not.char:
+		return not, nil
+	case leftBracket.char:
+		return leftBracket, nil
+	case rightBracket.char:
+		return rightBracket, nil
 	// keyword
 	case '"':
 		keyword := ""
@@ -67,17 +78,6 @@ func (r *reader) readToken() (interface{}, error) {
 			keyword += string(ch)
 		}
 		return nil, errors.New("quotes does not match")
-	// operators
-	case and.char:
-		return and, nil
-	case or.char:
-		return or, nil
-	case not.char:
-		return not, nil
-	case leftBracket.char:
-		return leftBracket, nil
-	case rightBracket.char:
-		return rightBracket, nil
 	}
 
 	return nil, errors.New("unexpected character")

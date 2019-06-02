@@ -48,14 +48,10 @@ $(function(){
   if (!window["WebSocket"]) {
     alert("Error: WebBrowser does not support websockets");
   } else {
-    // initialize select data
-    $(".selectpicker option:first").attr("selected", "selected")
-
     // initialize the socket and its callbacks
     socket = new WebSocket("ws://localhost:8080/hire");
     socket.onclose = onSocketClose;
     socket.onmessage = onSocketMessage;
-    socket.onopen = sendSocketData;
 
     // when search button is clicked, send socket data.
     $("#search").click(sendSocketData);
